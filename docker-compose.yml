@@ -1,0 +1,21 @@
+version: 3
+services:
+  frontend:
+    build:
+      context: frontend
+      target: prod
+      args:
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+    container_name: frontend
+    depends_on:
+        - backend
+    networks:
+      - api
+  backend:
+    build:
+      context: backend
+    networks:
+      - api
+networks:
+  api:
+    driver: bridge
