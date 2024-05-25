@@ -49,7 +49,7 @@ pipeline {
   }
   post {
     always {
-      sh 'docker system prune -y'
+      sh 'docker system prune -f'
       sh 'docker logout'
     }
   }
