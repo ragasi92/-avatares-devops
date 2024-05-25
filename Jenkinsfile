@@ -1,15 +1,18 @@
 pipeline {
-  agent { label 'linux' }
+  agent { label 'principal' }
   options {
     buildDiscarder(logRotator(numToKeepStr: '5'))
   }
   environment {
-    DOCKERHUB_CREDENTIALS = credentials('darinpope-dockerhub')
+    DOCKERHUB_CREDENTIALS = credentials('RAGASI1992-DOCKERHUB')
   }
   stages {
     stage('Build') {
       steps {
-        sh 'docker build -t darinpope/dp-alpine:latest .'
+        sh 'docker build -t ragasi1992/avatar-backend-devops:latest ./api'
+      }
+      steps {
+        sh 'docker build -t ragasi1992/avatar-frontend-devops:latest ./web'
       }
     }
     stage('Login') {
@@ -19,7 +22,10 @@ pipeline {
     }
     stage('Push') {
       steps {
-        sh 'docker push darinpope/dp-alpine:latest'
+        sh 'docker push ragasi1992/avatar-backend-devops:latest'
+      }
+      steps {
+        sh 'docker push ragasi1992/avatar-frontend-devops:latest'
       }
     }
   }
