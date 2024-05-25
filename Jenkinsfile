@@ -7,12 +7,14 @@ pipeline {
     DOCKERHUB_CREDENTIALS = credentials('RAGASI1992-DOCKERHUB')
   }
   stages {
-    stage('Build') {
-      steps {
-        sh 'docker build -t ragasi1992/avatar-backend-devops:latest ./api'
-      }
+    stage('Build frontend') {
       steps {
         sh 'docker build -t ragasi1992/avatar-frontend-devops:latest ./web'
+      }
+    }
+    stage('Build backend') {
+      steps {
+        sh 'docker build -t ragasi1992/avatar-backend-devops:latest ./api'
       }
     }
     stage('Login') {
@@ -22,10 +24,12 @@ pipeline {
     }
     stage('Push') {
       steps {
-        sh 'docker push ragasi1992/avatar-backend-devops:latest'
-      }
-      steps {
         sh 'docker push ragasi1992/avatar-frontend-devops:latest'
+      }
+    }
+     stage('Push2') {
+      steps {
+        sh 'docker push ragasi1992/avatar-backend-devops:latest'
       }
     }
   }
