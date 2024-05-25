@@ -1,19 +1,23 @@
-version: 3
+version: "3"
 services:
   frontend:
+    environment:
+      - VITE_BACKEND_URL="172.18.0.2"
     build:
-      context: frontend
-      target: prod
+      context: ./web
       args:
-        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+        - VITE_BACKEND_URL=VITE_BACKEND_URL
     container_name: frontend
+    ports:
+      - "80:5173"
     depends_on:
         - backend
     networks:
       - api
   backend:
+    hostname: backend
     build:
-      context: backend
+      context: ./api
     networks:
       - api
 networks:
