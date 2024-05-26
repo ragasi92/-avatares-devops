@@ -15,6 +15,7 @@ spec:
       containers:
       - name: frontend
         image: ragasi1992/avatar-frontend-devops:latest
+        imagePullPolicy: Always
         ports:
           - name: http
             containerPort: 5173
@@ -38,6 +39,7 @@ spec:
       containers:
       - name: backend
         image: ragasi1992/avatar-backend-devops:latest
+        imagePullPolicy: Always
         ports:
           - name: http
             containerPort: 5000
@@ -71,12 +73,11 @@ metadata:
 spec:
   selector:
     app: "nginx"
-  type: NodePort
+  type: LoadBalancer
   ports:
     - protocol: TCP
       port: 80
       targetPort: 80
-      nodePort: 31000
 
 ---
 apiVersion: v1
