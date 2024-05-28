@@ -7,11 +7,7 @@ pipeline {
     DOCKERHUB_CREDENTIALS = credentials('RAGASI1992-DOCKERHUB')
   }
   stages {
-    stage('Checkout Source') {
-      steps {
-        git 'https://github.com/ragasi92/avatares-devops.git'
-      }
-    }
+    
     /* stage('Build frontend') {
       steps {
         sh 'docker build -t ragasi1992/avatar-frontend-devops:latest ./web'
