@@ -39,10 +39,18 @@ pipeline {
     //     sh 'docker push ragasi1992/avatar-backend-devops:latest'
     //   }
     // }
-    stage('Deploying App to Kubernetes') {
+    /* stage('Deploying App to Kubernetes') {
       steps {
         script {
           kubernetesDeploy(configs: "deployment.yml", kubeconfigId: "kubeconfig")
+        }
+      }
+    } */
+
+    stage('Deploy App') {
+      steps {
+        script {
+          kubernetesDeploy(configs: "deployment.yaml", kubeconfigId: "mykubeconfig")
         }
       }
     }
