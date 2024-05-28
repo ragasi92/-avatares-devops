@@ -7,13 +7,13 @@ pipeline {
     DOCKERHUB_CREDENTIALS = credentials('RAGASI1992-DOCKERHUB')
   }
   stages {
-    stage('Build frontend') {
+    /* stage('Build frontend') {
       steps {
         sh 'docker build -t ragasi1992/avatar-frontend-devops:latest ./web'
         sh 'docker build -t ragasi1992/avatar-backend-devops:latest ./api'
         sh 'docker build -t ragasi1992/avatar-nginx-devops:latest ./nginx'
       }
-    }
+    } */
     // stage('Build backend') {
     //   steps {
     //     
@@ -22,7 +22,7 @@ pipeline {
     //     sh 'docker build -t ragasi1992/avatar-backend-devops:latest ./api'
     //   }
     // }
-    stage('Login') {
+  /*   stage('Login') {
       steps {
         sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
       }
@@ -33,7 +33,7 @@ pipeline {
         sh 'docker push ragasi1992/avatar-backend-devops:latest'
         sh 'docker push ragasi1992/avatar-nginx-devops:latest'
       }
-    }
+    } */
     //  stage('Push2') {
     //   steps {
     //     sh 'docker push ragasi1992/avatar-backend-devops:latest'
