@@ -1,5 +1,5 @@
 pipeline {
-  agent any
+  agent {label 'kubepod'}
   options {
     buildDiscarder(logRotator(numToKeepStr: '5'))
   }
