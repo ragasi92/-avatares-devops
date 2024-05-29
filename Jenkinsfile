@@ -1,9 +1,9 @@
 pipeline {
-  agent {label 'kubepod'}
+  agent any
   options {
     buildDiscarder(logRotator(numToKeepStr: '5'))
   }
-  
+
   environment {
     DOCKERHUB_CREDENTIALS = credentials('RAGASI1992-DOCKERHUB')
   }
@@ -50,11 +50,10 @@ pipeline {
     } */
 
     stage('Deploy App') {
-      steps {
-        script {
-          kubernetesDeploy(configs: "deployment.yaml", kubeconfigId: "mykubeconfig")
-        }
-      }
+     withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'cluster_config', namespace: '', 
+     restrictKubeConfigAccess: false, serverUrl: '') {
+      sh 'kubectl get nodes'
+}
     }
   }
   post {
