@@ -49,13 +49,16 @@ pipeline {
       }
     } */
 
-    stage('Deploy App') {
-     withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'cluster_config', namespace: '', 
+stage('Deploying App to Kubernetes') {
+      steps {
+         withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'cluster_config', namespace: '', 
      restrictKubeConfigAccess: false, serverUrl: '') {
       sh 'kubectl get nodes'
 }
-    }
+      }
+      }
   }
+
   post {
     always {
       sh 'docker system prune -f'
