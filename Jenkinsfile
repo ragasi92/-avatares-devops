@@ -51,8 +51,8 @@ pipeline {
 
 stage('Deploying App to Kubernetes') {
       steps {
-         withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'cluster_config', namespace: '', 
-     restrictKubeConfigAccess: false, serverUrl: '') {
+        withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: '', contextName: '', 
+        credentialsId: 'SECRET_TOKEN', namespace: '', serverUrl: 'https://54.237.72.127:6443']])  {
       sh 'kubectl get nodes'
 }
       }
