@@ -55,6 +55,7 @@ stage('Deploying App to Kubernetes') {
         credentialsId: 'SECRET_TOKEN', namespace: '', serverUrl: 'https://54.237.72.127:6443']])  {
           sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl"'  
           sh 'chmod u+x ./kubectl'  
+          sh './kubectl apply -f deployment.yml'
           sh './kubectl get nodes'
       }
       }
