@@ -11,9 +11,9 @@ pipeline {
   stages {
     stage('Build frontend') {
       steps {
-        sh 'docker build -t ragasi1992/avatar-frontend-devops:latest ./web'
-        sh 'docker build -t ragasi1992/avatar-backend-devops:latest ./api'
-        sh 'docker build -t ragasi1992/avatar-nginx-devops:latest ./nginx'
+        sh 'docker build -t ragasi1992/avatar-frontend-devops:${env.BUILD_NUMBER} ./web'
+        sh 'docker build -t ragasi1992/avatar-backend-devops:${env.BUILD_NUMBER} ./api'
+        //sh 'docker build -t ragasi1992/avatar-nginx-devops:latest ./nginx'
       }
     }
     // stage('Build backend') {
@@ -31,16 +31,15 @@ pipeline {
     }
     stage('Push') {
       steps {
-        sh 'docker push ragasi1992/avatar-frontend-devops:latest'
-        sh 'docker push ragasi1992/avatar-backend-devops:latest'
-        sh 'docker push ragasi1992/avatar-nginx-devops:latest'
+        sh 'docker push ragasi1992/avatar-frontend-devops:${env.BUILD_NUMBER}'
+        sh 'docker push ragasi1992/avatar-backend-devops:${env.BUILD_NUMBER}'
       }
     } 
-     stage('Push2') {
-      steps {
-        sh 'docker push ragasi1992/avatar-backend-devops:latest'
-      }
-    }
+    //  stage('Push2') {
+    //   steps {
+    //     sh 'docker push ragasi1992/avatar-backend-devops:latest'
+    //   }
+    // }
     //  stage('Deploying App to Kubernetes') {
     //   steps {
     //     script {
