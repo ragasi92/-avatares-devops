@@ -11,8 +11,8 @@ pipeline {
   stages {
     stage('Build frontend') {
       steps {
-        sh 'docker build -t ragasi1992/avatar-frontend-devops:${env.BUILD_NUMBER} ./web'
-        sh 'docker build -t ragasi1992/avatar-backend-devops:${env.BUILD_NUMBER} ./api'
+        sh 'docker build -t ragasi1992/avatar-frontend-devops ./web'
+        sh 'docker build -t ragasi1992/avatar-backend-devops ./api'
         //sh 'docker build -t ragasi1992/avatar-nginx-devops:latest ./nginx'
       }
     }
