@@ -31,8 +31,8 @@ pipeline {
     }
     stage('Push') {
       steps {
-        sh 'docker push ragasi1992/avatar-frontend-devops'
-        sh 'docker push ragasi1992/avatar-backend-devops'
+        sh "docker push ragasi1992/avatar-frontend-devops:${env.BUILD_NUMBER}"
+        sh "docker push ragasi1992/avatar-backend-devops:${env.BUILD_NUMBER}"
       }
     } 
     //  stage('Push2') {
