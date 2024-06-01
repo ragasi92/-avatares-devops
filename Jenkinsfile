@@ -35,6 +35,11 @@ pipeline {
         sh "docker push ragasi1992/avatar-backend-devops:${env.BUILD_NUMBER}"
       }
     } 
+
+    stage('Trigger ManifestUpdate') {
+        echo "triggering updatemanifestjob"
+        build job: 'updatemanifest', parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
+    }
     //  stage('Push2') {
     //   steps {
     //     sh 'docker push ragasi1992/avatar-backend-devops:latest'
