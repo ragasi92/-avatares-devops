@@ -1,0 +1,220 @@
+- name: Basic Setup
+  hosts: all
+  gather_facts: false
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    
+
+    - name: Set a hostname
+      ansible.builtin.hostname:
+        name: "{{ node_hostname }}"
+
+    - name: Copy /etc/hosts template
+      ansible.builtin.copy:
+        backup: true
+        src: ./files/hosts
+        dest: /tmp/hosts
+
+    - name: Insert/Update configuration using a local file and validate it
+      ansible.builtin.blockinfile:
+        block: "{{ lookup('file', './files/hosts') }}"
+        path: /etc/hosts
+        backup: yes
+
+    - name: Disable swap on all nodes
+      ansible.builtin.shell: swapoff -a
+
+    - name: kernel module prerequesites
+      ansible.builtin.shell:
+        cmd: |
+          cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+          overlay
+          br_netfilter
+          EOF
+
+    - name: add overlay module
+      community.general.modprobe:
+        name: overlay
+        state: present
+
+    - name: add br_netfilter module
+      community.general.modprobe:
+        name: br_netfilter
+        state: present
+
+    - name: sysctl params required by setup
+      ansible.builtin.shell:
+        cmd: |
+          cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+          net.bridge.bridge-nf-call-iptables  = 1
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.ipv4.ip_forward                 = 1
+          EOF
+
+    - name: apply sysctl params without reboot
+      ansible.builtin.shell: sysctl --system
+
+    - name: create containerd config file
+      ansible.builtin.shell: mkdir -p /etc/containerd && touch /etc/containerd/config.toml
+
+    - name: Install containerd pre-reqs
+      ansible.builtin.apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+
+    - name: add docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
+
+    - name: Install containerd.io
+      ansible.builtin.apt:
+        pkg:
+          - containerd.io
+
+    - name: Enable containerd
+      ansible.builtin.systemd:
+        name: containerd
+        daemon_reload: yes
+        state: started
+        enabled: yes
+
+    - name: Setup containerd to use systemd as cgroup
+      ansible.builtin.copy:
+        backup: true
+        src: ./files/containerd-config.toml
+        dest: /etc/containerd/config.toml
+
+    - name: Restart service cron, in all cases, also issue daemon-reload to pick up config changes
+      ansible.builtin.systemd:
+        state: restarted
+        daemon_reload: yes
+        name: containerd
+
+    ## NOTE: kubeadm stuff
+    - name: create keyrings folder
+      ansible.builtin.shell: sudo mkdir -p -m 755 /etc/apt/keyrings
+
+    - name: tst 1
+      ansible.builtin.shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: add kubernetes repository
+      ansible.builtin.shell: echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+    - name: run apt update
+      ansible.builtin.shell: sudo apt-get update
+
+    - name: Install kubadm, kubectl, kubelet
+      ansible.builtin.apt:
+        pkg:
+          - kubelet
+          - kubeadm
+          - kubectl
+          - python3-pip
+
+    - name: hold kubectl,kubeadm,kubelet packages
+      ansible.builtin.shell: apt-mark hold kubelet kubectl kubeadm
+
+- name: Setup Control Plane Node
+  hosts: master
+  become: true
+  become_user: ubuntu
+  tasks:
+    - name: init kubeadm
+      ansible.builtin.shell: sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint "{{ansible_host}}:6443"
+
+    - name: create ~/.kube directory
+      ansible.builtin.file:
+        path: /home/ubuntu/.kube
+        state: directory
+        mode: "0755"
+
+    #  - name: set the correct permission on kubeconfig file
+    #    shell: echo $(id -u):$(id -g)
+    
+    # - name: create kube directory
+    #   shell: sudo mkdir -p -m 755 /home/ubuntu/.kube
+
+    - name: copy kubeconfig file
+      shell: sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+
+    - name: set the correct permission on kubeconfig file
+      shell: sudo chown $(id -u):$(id -g) /home/ubuntu/.kube/config
+
+    - name: install flannel
+      ansible.builtin.shell: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/v0.20.2/Documentation/kube-flannel.yml
+
+    - name: Copy kubeconfig file locally
+      ansible.builtin.fetch:
+        src: $HOME/.kube/config
+        dest: /tmp/kubeconfig/
+        flat: yes
+
+    - name: Generate join token for worker nodes
+      ansible.builtin.shell: sudo kubeadm token create --print-join-command
+      register: join_node_token
+
+    - name: Save join command as variable
+      ansible.builtin.set_fact:
+        join_node: "{{ join_node_token.stdout_lines[0] }}"
+
+- name: Setup Worker Nodes
+  hosts: workers
+  become: true
+  tasks:
+    - name: add worker nodes to cluster
+      shell: "sudo {{ hostvars['control_plane'].join_node }}"
+
+- name: Set up ArgoCD
+  hosts: master
+  become: true
+  tasks:
+    - name: Set up ArgoCD
+      environment:
+        KUBECONFIG: "{{ kubeconfig | default('/etc/kubernetes/admin.conf') }}"
+      block:
+        - name: Install Python Kubernetes module
+          become: true
+          ansible.builtin.pip:
+            name: kubernetes
+            state: present
+
+        - name: Create ArgoCD namespace
+          kubernetes.core.k8s:
+            state: present
+            definition:
+              apiVersion: v1
+              kind: Namespace
+              metadata:
+                name: argocd
+                labels:
+                  name: argocd
+
+        - name: Download ArgoCD manifest
+          ansible.builtin.get_url:
+            url: https://raw.githubusercontent.com/argoproj/argo-cd/v2.5.6/manifests/install.yaml
+            dest: /tmp/argocd-install.yaml
+            mode: '0644'
+
+        - name: Install ArgoCD
+          kubernetes.core.k8s:
+            state: present
+            namespace: argocd
+            src: /tmp/argocd-install.yaml
