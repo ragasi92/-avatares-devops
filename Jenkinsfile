@@ -16,14 +16,14 @@ pipeline {
         sh 'docker build -t ragasi1992/avatar-nginx-devops:latest ./nginx'
       }
     }
-    stage('Build backend') {
-      steps {
+    // stage('Build backend') {
+    //   steps {
         
-      }
-      steps {
-        sh 'docker build -t ragasi1992/avatar-backend-devops:latest ./api'
-      }
-    }
+    //   }
+    //   steps {
+    //     sh 'docker build -t ragasi1992/avatar-backend-devops:latest ./api'
+    //   }
+    // }
     stage('Login') {
       steps {
         sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
