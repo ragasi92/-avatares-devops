@@ -6,7 +6,6 @@
     ansible_python_interpreter: /usr/bin/python3
   tasks:
     
-
     - name: Set a hostname
       ansible.builtin.hostname:
         name: "{{ node_hostname }}"
@@ -108,11 +107,10 @@
         daemon_reload: yes
         name: containerd
 
-    ## NOTE: kubeadm stuff
     - name: create keyrings folder
       ansible.builtin.shell: sudo mkdir -p -m 755 /etc/apt/keyrings
 
-    - name: tst 1
+    - name: get kubernetes keyring
       ansible.builtin.shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
     - name: add kubernetes repository
@@ -145,12 +143,6 @@
         path: /home/ubuntu/.kube
         state: directory
         mode: "0755"
-
-    #  - name: set the correct permission on kubeconfig file
-    #    shell: echo $(id -u):$(id -g)
-    
-    # - name: create kube directory
-    #   shell: sudo mkdir -p -m 755 /home/ubuntu/.kube
 
     - name: copy kubeconfig file
       shell: sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
@@ -218,3 +210,55 @@
             state: present
             namespace: argocd
             src: /tmp/argocd-install.yaml
+
+        - name: Download argocd cli
+          ansible.builtin.get_url:
+            url: https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+            dest: /usr/local/bin/argocd
+            mode: '0755'
+
+- name: Setup kubernetes-ingress manifest
+  hosts: master
+  become: true
+  tasks:
+    
+    - name: Download kubernetes-ingress manifest
+      ansible.builtin.unarchive:
+        src: https://github.com/nginxinc/kubernetes-ingress/archive/refs/tags/v3.5.2.tar.gz
+        dest: /home/ubuntu/
+        remote_src: yes
+
+    - name: Apply ingress manifest
+      environment:
+        KUBECONFIG: "{{ kubeconfig | default('/etc/kubernetes/admin.conf') }}"
+      block:
+      - name: Create namespace and service account
+        kubernetes.core.k8s:
+          state: present
+          src: /home/ubuntu/kubernetes-ingress-3.5.2/deployments/common/ns-and-sa.yaml
+
+      - name: Create rbac
+        kubernetes.core.k8s:
+          state: present
+          src: /home/ubuntu/kubernetes-ingress-3.5.2/deployments/rbac/rbac.yaml
+
+      - name: Create secret
+        kubernetes.core.k8s:
+          state: present
+          src: /home/ubuntu/kubernetes-ingress-3.5.2/examples/shared-examples/default-server-secret/default-server-secret.yaml
+      
+      - name: Config map
+        kubernetes.core.k8s:
+          state: present
+          src: /home/ubuntu/kubernetes-ingress-3.5.2/deployments/common/nginx-config.yaml
+      
+      - name: Create IngressClass
+        kubernetes.core.k8s:
+          state: present
+          src: /home/ubuntu/kubernetes-ingress-3.5.2/deployments/common/ingress-class.yaml
+
+      - name: Deploy daemon-set nginx-ingress
+        kubernetes.core.k8s:
+          state: present
+          src: /home/ubuntu/kubernetes-ingress-3.5.2/deployments/daemon-set/nginx-ingress.yaml 
+
