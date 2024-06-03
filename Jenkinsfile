@@ -5,7 +5,7 @@ pipeline {
   }
 
   environment {
-    DOCKERHUB_CREDENTIALS = credentials('RAGASI1992-DOCKERHUB')
+    DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB')
   }
 
   stages {
@@ -21,7 +21,7 @@ pipeline {
           branch "main"
       }
       steps {
-        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+        sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
       }
     }
     stage('Push') {
