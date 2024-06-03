@@ -17,11 +17,17 @@ pipeline {
     }
 
     stage('Login') {
+      when {
+          branch "main"
+      }
       steps {
         sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
       }
     }
     stage('Push') {
+      when {
+          branch "main"
+      }
       steps {
         sh "docker push ragasi1992/avatar-frontend-devops:${env.BUILD_NUMBER}"
         sh "docker push ragasi1992/avatar-backend-devops:${env.BUILD_NUMBER}"
@@ -29,6 +35,9 @@ pipeline {
     } 
 
     stage('Trigger ManifestUpdate') {
+      when {
+          branch "main"
+      }
         steps {
             echo "triggering updatemanifestjob"
             build job: 'updatemanifest', parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
