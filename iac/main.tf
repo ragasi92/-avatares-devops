@@ -128,6 +128,22 @@ resource "aws_security_group" "kubadm_demo_sg_common" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "Allow HTTPS"
+    protocol = "tcp"
+    from_port = 30000
+    to_port = 30000
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Allow HTTPS"
+    protocol = "tcp"
+    from_port = 30001
+    to_port = 30001
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
