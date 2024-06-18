@@ -79,15 +79,34 @@ El objetivo principal es implementar un flujo de trabajo DevOps completo para el
 
 ## Recursos creados en AWS para levantar el proyecto
 
-#### Hosted zone
+### Hosted zone
 
 ![](./docs/hosted-zone.png)
 
-#### LoadBalancer
+### LoadBalancer
+
 ![](./docs/aplication-loadbalancer.png)
 
-#### Security groups
-![](./docs/2.png)
+### Security groups
 
-#### Instancias del cluster
-![](./docs/2.png)
+#### Master Node
+![](./docs/sg-master-node.png)
+
+#### Worker Node
+![](./docs/sg-worker.png)
+
+#### Common nodes
+![](./docs/sg-common-nodes.png)
+
+
+### Instancias del cluster
+
+#### Master Node
+![](./docs/master-node.png)
+
+#### Worker Node
+![](./docs/worker-node.png)
+
+## Aplicación en ejecución
+
+![](./docs/appRunning.png)
