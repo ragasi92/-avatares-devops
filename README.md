@@ -1,3 +1,4 @@
+
 ## Proyecto Final de Bootcamp DevOps: Avatares 🚀
 
 ### Descripción del Proyecto:
@@ -74,3 +75,19 @@ El objetivo principal es implementar un flujo de trabajo DevOps completo para el
 - Infraestructura aprovisionada y administrada mediante Terraform.
 - Aplicación desplegada y ejecutándose correctamente en un clúster de Kubernetes.
 - Herramientas de observabilidad configuradas y proporcionando información útil sobre el estado y rendimiento de la aplicación.
+
+
+## Recursos creados en AWS para levantar el proyecto
+
+#### Hosted zone
+
+![](./docs/hosted-zone.png)
+
+#### LoadBalancer
+![](./docs/aplication-loadbalancer.png)
+
+#### Security groups
+![](./docs/2.png)
+
+#### Instancias del cluster
+![](./docs/2.png)
